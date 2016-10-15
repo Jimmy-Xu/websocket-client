@@ -13,7 +13,7 @@ import (
 	"os/signal"
 	"strings"
 
-	SignUtil "github.com/hyperhq/websocket-client/go/util"
+	SignUtil "github.com/Jimmy-Xu/websocket-client/go/util"
 
 	"github.com/gorilla/websocket"
 )

@@ -1,4 +1,12 @@
-G_API_ROUTER="us-west-1.hyper.sh:443"
+## packet-cns-1
+G_API_ROUTER="147.x.x.37:6443"
+
+## packet-ceph
+#G_API_ROUTER="147.x.x.39:6443"
+
+## zl2
+#G_API_ROUTER="us-west-1.hyper.sh:443"
+
 G_HYPERCLI="hyper --host tcp://${G_API_ROUTER}"
 
 G_TEST_CONTAINER1="wstest1"

@@ -4,7 +4,7 @@ SH_NAME=$(basename $0)
 
 if [ ! -f etc/config ];then
   cp etc/config.template etc/config
-  echo "Config file 'etc/config' was generated, you can update it if needed."
+  echo "Config file 'etc/config' was generated, Please set the value of 'G_API_ROUTER' first!"
   sleep 1
 fi
 
@@ -12,9 +12,19 @@ fi
 echo "Found ./etc/config, load it now"
 . ./etc/config
 
+echo "${G_API_ROUTER}" | grep 'x.x' >/dev/null 2>&1
+if [ $? -eq 0 ];then
+    echo "Please set the value of 'G_API_ROUTER' in etc/config first! "
+    exit 1
+fi
+
 eval HYPER_ACCESS_KEY=`echo $(cat ~/.hyper/config.json | grep "tcp://${G_API_ROUTER}" -A2 | grep accesskey | awk  'BEGIN{FS="[:,]"}{print $2}' )`
 eval HYPER_SECRET_KEY=`echo $(cat ~/.hyper/config.json | grep "tcp://${G_API_ROUTER}" -A2 | grep secretkey | awk  'BEGIN{FS="[:,]"}{print $2}' )`
-echo "use Hyper.sh credential: AccessKey(${HYPER_ACCESS_KEY})"
+
+cat <<EOF
+apirouter: ${G_API_ROUTER}
+accesskey: ${HYPER_ACCESS_KEY}
+EOF
 
 if [ "$HYPER_ACCESS_KEY" == "" ];then
   echo "can not found Hyper.sh credential"
@@ -24,6 +34,7 @@ fi
 ###############################################################
 function show_usage() {
   cat <<EOF
+
 Usage: ./${SH_NAME} <ACTION> [OPTION]
 
 <ACTION>:
@@ -57,6 +68,7 @@ EOF
 function show_test_usage() {
   SH_NAME=$(basename $0)
   cat <<EOF
+
 Usage: ./${SH_NAME} watch <FILTER> [CASE_NO]
 
 <FILTER>:

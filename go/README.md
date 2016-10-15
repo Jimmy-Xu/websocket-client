@@ -113,7 +113,7 @@ Usage: ./util.sh <ACTION> [OPTION]
  - stop                      : stop test container
  - start                     : start test container
  - rm                        : remove test container
- - test <FILTER> [CASE_NO]   : run test case
+ - watch <FILTER> [CASE_NO]  : run watch with filter
 
 <FILTER>:
  - container : use container.lst
@@ -122,7 +122,7 @@ Usage: ./util.sh <ACTION> [OPTION]
  - event     : use event.lst
 
 [CASE_NO]:
- - <empty>     : show all test case NO.
+ - <empty>     : show watch filter list.
  - <not empty> : start websocket client to watch with filter
 
 Example:
@@ -183,3 +183,20 @@ $ curl -g 'http://127.0.0.1:2375/events?filters={"container":{"test":true},"imag
 {"status":"start","id":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","from":"busybox","Type":"container","Action":"start","Actor":{"ID":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","Attributes":{"image":"busybox","name":"test","sh_hyper_instancetype":"s4","test1":"","test2":"test2","test3":"test3=test3"}},"time":1476419660,"timeNano":1476419660534483726}
 {"status":"stop","id":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","from":"busybox","Type":"container","Action":"stop","Actor":{"ID":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","Attributes":{"image":"busybox","name":"test","sh_hyper_instancetype":"s4","test1":"","test2":"test2","test3":"test3=test3"}},"time":1476419662,"timeNano":1476419662997733372}
 ```
+
+# REF:
+
+- WebSocket:
+  - https://github.com/gorilla/websocket/blob/master/client_server_test.go#L322
+- Kubernates Watch:
+  - https://github.com/kubernetes/kubernetes/blob/master/pkg/client/cache/reflector.go#L362
+- Browser aws4 example
+  - https://github.com/mhart/aws4/tree/master/browser
+- Filter
+  - https://github.com/docker/engine-api/blob/master/types/filters/parse_test.go
+- Docker Event
+  - https://github.com/docker/engine-api/blob/master/client/events_test.go#L56
+- Connection number limit
+  - http://www.cnblogs.com/zhangqingping/p/4344278.html
+- Connection rate limit
+  - https://github.com/golang/go/wiki/RateLimiting

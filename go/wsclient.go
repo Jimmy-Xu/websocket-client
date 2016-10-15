@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"reflect"
 
 	SignUtil "github.com/Jimmy-Xu/websocket-client/go/util"
 
@@ -26,6 +27,22 @@ func (f *FlagParam) String() string {
 
 func (f *FlagParam) Set(value string) error {
 	*f = strings.Split(value, ",")
+	return nil
+}
+
+func debugData(name string, data interface{}) error {
+	log.Printf("-------------------- %v --------------------", name)
+	fv := reflect.ValueOf(data)
+	ft := reflect.TypeOf(data)
+	if fv.Kind() == reflect.Ptr {
+		fv = fv.Elem()
+		ft = ft.Elem()
+	}
+	for i := 0; i < fv.NumField(); i++ {
+		v := fv.Field(i)
+		t := ft.Field(i)
+		log.Printf("%d: %s(%v)=%v %v", i, t.Name, v.Kind().String(), v.String(), t.Tag.Get("env"))
+	}
 	return nil
 }
 
@@ -86,6 +103,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error:", err)
 	}
+	//debugData("resp", resp)
 	if resp.StatusCode == http.StatusSwitchingProtocols {
 		log.Printf("connected, watching event now:")
 	} else {

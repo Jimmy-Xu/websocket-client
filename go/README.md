@@ -98,6 +98,24 @@ use option `--filter`, support filter by `container,image,label,event`
 $ go run wsclient.go --addr=${API_ROUTER} --accessKey $HYPER_ACCESS_KEY  --secretKey $HYPER_SECRET_KEY  --filter=container=wstest2,image=alpine,event=stop,label=type,label=sh_hyper_instancetype=s1
 ```
 
+### Watch event with debug
+
+use option `--debug` to show curl command line
+
+```
+$ go run wsclient.go --addr=${API_ROUTER} --accessKey $HYPER_ACCESS_KEY  --secretKey $HYPER_SECRET_KEY --debug
+connecting to wss://x.x.x.x:6443/events/ws
+--------------------------------------------------------------------------------------------
+curl -g -k\  -H "Content-Type: application/json" \
+  -H "X-Hyper-Date: 20161018T020651Z" \
+  -H "X-Hyper-Content-Sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" \
+  -H "Host: x.x.x.x:6443" \
+  -H "Authorization: HYPER-HMAC-SHA256 Credential=xxxxxxxxxxxxxxxx/20161018/us-west-1/hyper/hyper_request, SignedHeaders=content-type;host;x-hyper-content-sha256;x-hyper-date, Signature=df7aadbcd57150dfc6dce33f57b71cbe94e0e4bac4380f6c49d5870b76348fdb" \
+  -X GET \
+  'https://x.x.x.x:6443/events/ws'
+--------------------------------------------------------------------------------------------
+```
+
 # Test filter with util.sh
 
 ./util.sh makes start websocket client with filter easier.

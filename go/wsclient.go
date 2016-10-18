@@ -6,13 +6,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"strings"
 	"reflect"
+	"strings"
 
 	SignUtil "github.com/Jimmy-Xu/websocket-client/go/util"
 
@@ -54,6 +55,7 @@ func main() {
 	var accessKey = flag.String("accessKey", "", "Hyper.sh Access Key")
 	var secretKey = flag.String("secretKey", "", "Hyper.sh Secret Key")
 	var pretty = flag.Bool("pretty", false, "Output result json as prettyprint JSON")
+	var debug = flag.Bool("debug", false, "debug mode, show curl command line of request")
 	flag.Var(&filters, "filter", "Filter event by container,image,label,event, example 'container=test,image=busybox,label=key=value,event=start'")
 
 	flag.Parse()
@@ -61,7 +63,7 @@ func main() {
 
 	//check accessKey and secretKey
 	if *accessKey == "" || *secretKey == "" {
-		log.Printf("Please specify 'accessKey' and 'secretKey'!")
+		log.Print("Please specify 'accessKey' and 'secretKey'!")
 		return
 	}
 
@@ -99,16 +101,25 @@ func main() {
 	dialer := websocket.Dialer{
 		TLSClientConfig: config,
 	}
-	ws, resp, err := dialer.Dial(u.String(), req.Header)
-	if err != nil {
-		log.Fatal("Error:", err)
+
+	if *debug {
+		showCurl(req)
 	}
-	//debugData("resp", resp)
+
+	ws, resp, err := dialer.Dial(u.String(), req.Header)
+
 	if resp.StatusCode == http.StatusSwitchingProtocols {
-		log.Printf("connected, watching event now:")
-	} else {
-		log.Printf("Unexpected HTTP Status Code: %v\n", resp.StatusCode)
-		return
+		log.Print("connected, watching event now:")
+	}
+
+	var data []byte
+	if resp.ContentLength > 0 {
+		defer resp.Body.Close()
+		data, _ = ioutil.ReadAll(resp.Body)
+	}
+
+	if err != nil {
+		log.Fatalf("Error Result:\n status    : %v\n return    : %v", resp.Status, string(data))
 	}
 
 	defer ws.Close()
@@ -183,4 +194,17 @@ func formatFilter(filters *FlagParam) (*string, error) {
 	b, _ := json.Marshal(result)
 	strResult := string(b)
 	return &strResult, nil
+}
+
+func showCurl(r *http.Request) {
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Print("curl -g -k -v \\\n")
+	for k, v := range r.Header {
+		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
+	}
+	fmt.Printf("  -X %v \\\n", r.Method)
+	fmt.Printf(" -H \"Connection: Upgrade\" -H \"Upgrade: websocket\"  \\\n")
+
+	fmt.Printf("  'https://%v%v'\n", r.Host, r.URL.RequestURI())
+	fmt.Println("--------------------------------------------------------------------------------------------")
 }

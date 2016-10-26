@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -14,6 +15,7 @@ import (
 	"os/signal"
 	"reflect"
 	"strings"
+	"time"
 
 	SignUtil "github.com/Jimmy-Xu/websocket-client/go/util"
 
@@ -104,6 +106,7 @@ func main() {
 
 	if *debug {
 		showCurl(req)
+		showWSCat(req)
 	}
 
 	ws, resp, err := dialer.Dial(u.String(), req.Header)
@@ -131,9 +134,10 @@ func main() {
 		for {
 			_, message, err := ws.ReadMessage()
 			if err != nil {
-				log.Println("Error:", err)
+				log.Println("Read Error:", err)
 				break loop
 			}
+
 			if *pretty {
 				//outpu pretty print json
 				var dat map[string]interface{}
@@ -197,14 +201,25 @@ func formatFilter(filters *FlagParam) (*string, error) {
 }
 
 func showCurl(r *http.Request) {
-	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("-----------------------------------------------curl command line begin-----------------------------------------------")
 	fmt.Print("curl -g -k -v \\\n")
 	for k, v := range r.Header {
 		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
 	}
 	fmt.Printf("  -X %v \\\n", r.Method)
-	fmt.Printf(" -H \"Connection: Upgrade\" -H \"Upgrade: websocket\"  \\\n")
+	fmt.Printf("  -H \"Connection: Upgrade\"\\\n  -H \"Upgrade: websocket\"\\\n  -H \"Sec-Websocket-Version: 13\" \\\n")
+	fmt.Printf("  -H \"Sec-WebSocket-Key: %v\" \\\n", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v", time.Now().UnixNano))))
 
 	fmt.Printf("  'https://%v%v'\n", r.Host, r.URL.RequestURI())
-	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("-----------------------------------------------curl command line end-----------------------------------------------")
+}
+
+func showWSCat(r *http.Request) {
+	fmt.Println("-----------------------------------------------wscat command line begin-----------------------------------------------")
+	fmt.Print("wscat -n \\\n")
+	for k, v := range r.Header {
+		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
+	}
+	fmt.Printf("  -c 'wss://%v%v'\n", r.Host, r.URL.RequestURI())
+	fmt.Println("-----------------------------------------------wscat command line end-----------------------------------------------")
 }

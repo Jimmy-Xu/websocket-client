@@ -100,20 +100,35 @@ $ go run wsclient.go --addr=${API_ROUTER} --accessKey $HYPER_ACCESS_KEY  --secre
 
 ### Watch event with debug
 
-use option `--debug` to show curl command line
+use option `--debug` to show curl/wscat command line
 
 ```
 $ go run wsclient.go --addr=${API_ROUTER} --accessKey $HYPER_ACCESS_KEY  --secretKey $HYPER_SECRET_KEY --debug
 connecting to wss://x.x.x.x:6443/events/ws
---------------------------------------------------------------------------------------------
-curl -g -k\  -H "Content-Type: application/json" \
-  -H "X-Hyper-Date: 20161018T020651Z" \
+-----------------------------------------------curl command line begin-----------------------------------------------
+curl -g -k -v \
+  -H "Content-Type: application/json" \
+  -H "X-Hyper-Date: 20161026T071934Z" \
   -H "X-Hyper-Content-Sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" \
   -H "Host: x.x.x.x:6443" \
-  -H "Authorization: HYPER-HMAC-SHA256 Credential=xxxxxxxxxxxxxxxx/20161018/us-west-1/hyper/hyper_request, SignedHeaders=content-type;host;x-hyper-content-sha256;x-hyper-date, Signature=df7aadbcd57150dfc6dce33f57b71cbe94e0e4bac4380f6c49d5870b76348fdb" \
+  -H "Authorization: HYPER-HMAC-SHA256 Credential=xxxxxxxxxx/20161026/us-west-1/hyper/hyper_request, SignedHeaders=content-type;host;x-hyper-content-sha256;x-hyper-date, Signature=150f6019815ad5425669878bebd098d147b41391f63d6e95a05cee4b86881bbf" \
   -X GET \
+  -H "Connection: Upgrade"\
+  -H "Upgrade: websocket"\
+  -H "Sec-Websocket-Version: 13" \
+  -H "Sec-WebSocket-Key: MHg0MDQ4NTA=" \
   'https://x.x.x.x:6443/events/ws'
---------------------------------------------------------------------------------------------
+-----------------------------------------------curl command line end-----------------------------------------------
+-----------------------------------------------wscat command line begin-----------------------------------------------
+wscat -n \
+  -H "Content-Type: application/json" \
+  -H "X-Hyper-Date: 20161026T071934Z" \
+  -H "X-Hyper-Content-Sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" \
+  -H "Host: x.x.x.x:6443" \
+  -H "Authorization: HYPER-HMAC-SHA256 Credential=xxxxxxxxxx/20161026/us-west-1/hyper/hyper_request, SignedHeaders=content-type;host;x-hyper-content-sha256;x-hyper-date, Signature=150f6019815ad5425669878bebd098d147b41391f63d6e95a05cee4b86881bbf" \
+  -c 'wss://x.x.x.x:6443/events/ws'
+-----------------------------------------------wscat command line end-----------------------------------------------
+connected, watching event now:
 ```
 
 # Test filter with util.sh
@@ -200,6 +215,29 @@ $ curl -g 'http://127.0.0.1:2375/events?filters={"container":{"test":true},"imag
 
 {"status":"start","id":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","from":"busybox","Type":"container","Action":"start","Actor":{"ID":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","Attributes":{"image":"busybox","name":"test","sh_hyper_instancetype":"s4","test1":"","test2":"test2","test3":"test3=test3"}},"time":1476419660,"timeNano":1476419660534483726}
 {"status":"stop","id":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","from":"busybox","Type":"container","Action":"stop","Actor":{"ID":"6c0902c750c73d4bee6cecc82b1a6e3f36f625f65cfd5417fdb09e5b9a2f7d16","Attributes":{"image":"busybox","name":"test","sh_hyper_instancetype":"s4","test1":"","test2":"test2","test3":"test3=test3"}},"time":1476419662,"timeNano":1476419662997733372}
+```
+
+## how to debug websocket with command line
+
+use `wscat` as websocket client
+
+```
+//install wscat
+$ npm install -g ws
+
+//use wscat to connect websocket server
+$ wscat -n \
+  -H "Host: x.x.x.x:6443" \
+  -H "Authorization: HYPER-HMAC-SHA256 Credential=xxxxxxxxxx/20161026/us-west-1/hyper/hyper_request, SignedHeaders=content-type;host;x-hyper-content-sha
+256;x-hyper-date, Signature=b5e73397a5c374f98bfec4b24a93bc336b54808103d8eff3fabbe9070d63ad1e" \
+  -H "Content-Type: application/json" \
+  -H "X-Hyper-Date: 20161026T070322Z" \
+  -H "X-Hyper-Content-Sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  -c 'wss://x.x.x.x:6443/events/ws'
+
+connected (press CTRL+C to quit)
+  < {"status":"start","id":"96fe510588e4bd2e14ff2a1dcdc0ec62acf5a2da5d83506efc795aa0299ff033","from":"xjimmyshcn/busybox","Type":"container","Action":"start","Actor":{"ID":"96fe510588e4bd2e14ff2a1dcdc0ec62acf5a2da5d83506efc795aa0299ff033","Attributes":{"":"","empty":"","exitCode":"0","id":"test1","image":"xjimmyshcn/busybox","key":"test1=test1","name":"wstest1","sh.hyper.fip":"","sh_hyper_instancetype":"s1","test1":"","test2":"test2","test3":"test3=test3","type":"test"}},"time":1477465526,"timeNano":1477465526775991826}
+>
 ```
 
 # REF:
